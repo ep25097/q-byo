@@ -1,105 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function QuizPage() {
+import { db } from "@/lib/firebase";
 
-  const [userName, setUserName] =
-    useState("");
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 
-  const [uid] =
-    useState(crypto.randomUUID());
+export default function RankingPage() {
+  const [ranking, setRanking] =
+    useState<any[]>([]);
 
-  const [finished, setFinished] =
-    useState(false);
-
-  async function startQuiz() {
-
-    await fetch(
-      "/api/startQuiz",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-        body: JSON.stringify({
-          uid,
-          userName,
-        }),
-      }
+  useEffect(() => {
+    const q = query(
+      collection(db, "results"),
+      orderBy("solveTimeMs", "asc")
     );
 
-    alert("開始しました");
-  }
+    const unsubscribe =
+      onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })
+        );
 
-  async function finishQuiz() {
+        setRanking(data);
+      });
 
-    const res = await fetch(
-      "/api/finishQuiz",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-        body: JSON.stringify({
-          uid,
-        }),
-      }
-    );
-
-    const data =
-      await res.json();
-
-    alert(
-      "解答時間: " +
-      data.solveTimeMs +
-      "ms"
-    );
-
-    setFinished(true);
-  }
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <div>
-      <h1>クイズテスト</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>ランキング</h1>
 
-      <input
-        type="text"
-        placeholder="名前を入力"
-        value={userName}
-        onChange={(e) =>
-          setUserName(e.target.value)
-        }
-      />
+      <table
+        border={1}
+        cellPadding={10}
+        style={{
+          borderCollapse: "collapse",
+        }}
+      >
+        <thead>
+          <tr>
+            <th>順位</th>
+            <th>名前</th>
+            <th>解答時間(ms)</th>
+          </tr>
+        </thead>
 
-      <br />
-      <br />
-
-      <button onClick={startQuiz}>
-        開始
-      </button>
-
-      <button onClick={finishQuiz}>
-        終了
-      </button>
-
-      {finished && (
-        <>
-          <br />
-          <br />
-
-          <button
-            onClick={() =>
-              window.location.href =
-                "/ranking"
-            }
-          >
-            ランキングを見る
-          </button>
-        </>
-      )}
+        <tbody>
+          {ranking.map((user, index) => (
+            <tr key={user.id}>
+              <td>{index + 1}</td>
+              <td>{user.userName}</td>
+              <td>{user.solveTimeMs}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
