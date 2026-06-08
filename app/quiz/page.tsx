@@ -10,6 +10,9 @@ export default function QuizPage() {
   const [uid] =
     useState(crypto.randomUUID());
 
+  const [finished, setFinished] =
+    useState(false);
+
   async function startQuiz() {
 
     await fetch(
@@ -54,6 +57,8 @@ export default function QuizPage() {
       data.solveTimeMs +
       "ms"
     );
+
+    setFinished(true);
   }
 
   return (
@@ -79,6 +84,22 @@ export default function QuizPage() {
       <button onClick={finishQuiz}>
         終了
       </button>
+
+      {finished && (
+        <>
+          <br />
+          <br />
+
+          <button
+            onClick={() =>
+              window.location.href =
+                "/ranking"
+            }
+          >
+            ランキングを見る
+          </button>
+        </>
+      )}
     </div>
   );
 }
