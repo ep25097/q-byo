@@ -24,11 +24,20 @@ export async function POST(req: Request) {
     );
   }
 
-  const start =
-    snap.data().startTime.toMillis();
+  const data = snap.data();
+
+  console.log(data);
+
+  if (!data.startTime) {
+    return Response.json(
+      { error: "startTime not found" },
+      { status: 400 }
+    );
+  }
 
   const solveTimeMs =
-    Date.now() - start;
+    Date.now() -
+    data.startTime.toMillis();
 
   await updateDoc(ref, {
     endTime: serverTimestamp(),

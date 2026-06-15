@@ -1,18 +1,73 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+
+  const [userName, setUserName] =
+    useState("");
+
+  async function startQuiz() {
+
+    const uid =
+      crypto.randomUUID();
+
+    localStorage.setItem(
+      "uid",
+      uid
+    );
+
+    await fetch(
+      "/api/startQuiz",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          uid,
+          userName,
+        }),
+      }
+    );
+
+    window.location.href =
+      "/quiz";
+  }
+
   return (
     <main style={{ padding: "40px" }}>
+
       <h1>クイズアプリ</h1>
 
-      <p>メニュー</p>
+      <input
+        type="text"
+        placeholder="名前を入力"
+        value={userName}
+        onChange={(e) =>
+          setUserName(
+            e.target.value
+          )
+        }
+      />
 
-      <ul>
-        <li>
-          <a href="/quiz">クイズ開始</a>
-        </li>
-        <li>
-          <a href="/ranking">ランキング</a>
-        </li>
-      </ul>
+      <br />
+      <br />
+
+      <button
+        onClick={startQuiz}
+      >
+        クイズ開始
+      </button>
+
+      <br />
+      <br />
+
+      <a href="/ranking">
+        ランキング
+      </a>
+
     </main>
   );
 }
